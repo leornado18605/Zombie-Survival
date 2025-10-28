@@ -42,4 +42,17 @@ public class CinemachineCameraOrbit : MonoBehaviour
         // Giữ camera luôn nhìn vào target
         vcam.LookAt = target;
     }
+    
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+        yaw = 0;
+        pitch = 0;
+        if (vcam != null)
+        {
+            vcam.Follow = newTarget;
+            vcam.LookAt = newTarget;
+        }
+    }
+
 }

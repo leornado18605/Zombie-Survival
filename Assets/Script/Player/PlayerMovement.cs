@@ -10,6 +10,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float verticalSpeed = 5f;   // tốc độ bay lên/xuống
     [SerializeField] private float rotationSpeed = 10f;  // độ mượt khi xoay
 
+    
+    [Header("Jump Settings")]
+    [SerializeField] private float jumpForce = 6f;     // độ cao nhảy
+    [SerializeField] private float gravity = -9.81f;
+    
     [Header("Flight Settings")]
     [SerializeField] private bool canFly = false; // chỉ true khi tiến hóa
 
@@ -17,13 +22,18 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private Vector3 moveInput;
     private bool isRunning;
-    private float gravity = -9.81f;
     private float verticalVelocity;
 
+    private float baseMoveSpeed;
+    private float baseWalkSpeed;
+    private bool isJumping;
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
+        
+        baseMoveSpeed = moveSpeed;
+        baseWalkSpeed = walkSpeed;
     }
 
     private void Update()
@@ -76,11 +86,23 @@ public class PlayerMovement : MonoBehaviour
             {
                 Quaternion targetRot = Quaternion.LookRotation(moveDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
-                animator.SetBool("isMoving", true);
+                
+                if (isRunning)
+                {
+                    animator.SetBool("isMoving", false);
+                    animator.SetBool("isRunning", true);
+                }
+                else
+                {
+                    animator.SetBool("isMoving", true);
+                    animator.SetBool("isRunning", false);
+                }
+                
             }
             else
             {
                 animator.SetBool("isMoving", false);
+                animator.SetBool("isRunning", false);
             }
 
             // ✨ Hiệu ứng ngẩng/cúi đầu
@@ -93,28 +115,62 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // 🚶‍♂️ Đi bộ
+            // 🚶‍♂️ Ground Movement (đi bộ + nhảy)
             verticalVelocity += gravity * Time.deltaTime;
+
+            // Giữ player dính mặt đất
             if (controller.isGrounded && verticalVelocity < 0)
                 verticalVelocity = -2f;
 
-            Vector3 move = moveDir * walkSpeed;
+            // 🟢 Xử lý nhảy
+            if (controller.isGrounded)
+            {
+                // Khi chạm đất → tắt trạng thái nhảy
+                if (isJumping)
+                {
+                    isJumping = false;
+                    animator.SetBool("isJumping", false);
+                }
+
+                // Khi nhấn Space → nhảy lên
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    verticalVelocity = jumpForce;   // tạo lực nhảy
+                    isJumping = true;
+                    animator.SetBool("isJumping", true);
+                }
+            }
+
+            float groundSpeed = isRunning ? walkSpeed * 1.5f : walkSpeed;
+            Vector3 move = moveDir * groundSpeed;
+
             move.y = verticalVelocity;
             finalVelocity = move;
 
-            // Xoay theo hướng di chuyển
+            // 🔄 Xoay theo hướng di chuyển
             if (moveDir.sqrMagnitude > 0.1f)
             {
                 Quaternion targetRot = Quaternion.LookRotation(moveDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
-                animator.SetBool("isMoving", true);
+
+                animator.SetBool("isMoving", !isRunning);
+                animator.SetBool("isRunning", isRunning);
             }
             else
             {
                 animator.SetBool("isMoving", false);
+                animator.SetBool("isRunning", false);
             }
         }
 
+
         controller.Move(finalVelocity * Time.deltaTime);
     }
+    
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        moveSpeed = baseMoveSpeed * multiplier;
+        walkSpeed = baseWalkSpeed * multiplier;
+    }
+
 }
