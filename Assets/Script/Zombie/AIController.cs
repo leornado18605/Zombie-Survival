@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.AI;
+using AI.StateMachine;
 
 public sealed class AIController : MonoBehaviour
 {
@@ -24,7 +26,7 @@ public sealed class AIController : MonoBehaviour
         chaseState = new AIStateChase(this);
         attackState = new AIStateAttack(this);
         deadState = new AIStateDead(this);
-
+        
         currentState = idleState;
         currentState = patrolState;  
     }

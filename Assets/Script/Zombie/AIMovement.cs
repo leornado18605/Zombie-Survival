@@ -8,11 +8,16 @@ public sealed class AIMovement : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private float rotationSpeed = 5f;
 
-    private static readonly int  AnimSpeed = Animator.StringToHash("Speed");
+    private static readonly int  AnimSpeed = Animator.StringToHash("isSpeeding");
 
     public Animator Animator=> animator;
     public NavMeshAgent Agent => agent;
     
+    private void Update()
+    {
+        animator.SetFloat(AnimSpeed, agent.velocity.magnitude);
+    }
+
     public void MoveTo(Vector3 position)
     {
         

@@ -164,21 +164,6 @@ public class PlayerEvolution : MonoBehaviour
         Destroy(gameObject, 0.3f);
     }
 
-    
-    private IEnumerator UpdateCameraTargetNextFrame(Transform target)
-    {
-        // chờ 1 frame để player mới hoàn toàn xuất hiện
-        yield return null;
-
-        if (vcam != null && target != null)
-        {
-            vcam.Follow = target;
-            vcam.LookAt = target;
-
-            Debug.Log($"🎥 [Cinemachine] Follow & LookAt updated to: {target.name}");
-        }
-    }
-
     private void ApplyStage(EvolutionStage stage)
     {
         currentStage = stage;
